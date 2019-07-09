@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.ViewNewsActivity"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.v7.widget.Toolbar
+            android:layout_marginTop="15dp"
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/MenuStyte"
+            >
+            <RelativeLayout
+                android:layout_marginTop="15dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/cancel"
+                    android:id="@+id/back"
+                    android:layout_alignParentLeft="true"
+                    />
+                <ImageView
+                    android:layout_marginRight="5dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_share_black_24dp"
+                    android:id="@+id/shareV"
+                    />
+            </RelativeLayout>
+        </android.support.v7.widget.Toolbar>
+    </android.support.design.widget.AppBarLayout>
+
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:progress="0"
+        android:id="@+id/progress"
+        />
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/refresh"
+        >
+        <WebView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/web"
+            ></WebView>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+</LinearLayout>
