@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import com.dell.breakingnewapp.view.fragment.CountryFragment;
 import com.dell.breakingnewapp.view.fragment.EntertaimentFragment;
 import com.dell.breakingnewapp.view.fragment.HomeFragment;
+import com.dell.breakingnewapp.view.fragment.PageMoreFragment;
 import com.dell.breakingnewapp.view.fragment.WorldFragment;
 
 public class ViewPaperAdapter extends FragmentPagerAdapter {
@@ -34,13 +35,15 @@ public class ViewPaperAdapter extends FragmentPagerAdapter {
         else if (position == 3)
         {
             fragment = new EntertaimentFragment();
+        }else if(position == 4){
+            fragment = new PageMoreFragment();
         }
         return fragment;
     }
 
     @Override
     public int getCount() {
-        return 4;
+        return 5;
     }
 
     @Override

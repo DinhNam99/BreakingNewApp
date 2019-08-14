@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -34,6 +35,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class CountryFragment extends Fragment implements LoadDataRSS {
@@ -43,32 +46,22 @@ public class CountryFragment extends Fragment implements LoadDataRSS {
     NewsAdapter newsAdapter;
     MainPresenter mainPresenter;
     EditText edSearch;
+    TextView tvName;
     List<News> newsList;
+    int frag;
 
-    ImageView imageM,shareCM;
-    TextView tvTitleM, tvDescM, tvPubDataM;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.frag_country,container,false);
-
-        layout = view.findViewById(R.id.country);
-
-
-        //display title desc, pubdat main
-        //nen
-        imageM = view.findViewById(R.id.ivNen);
-        tvTitleM = view.findViewById(R.id.tvTitleCM);
-        tvDescM = view.findViewById(R.id.tvDescCM);
-        tvPubDataM = view.findViewById(R.id.tvTimeDateCM);
-        shareCM = view.findViewById(R.id.shareCM);
-
+        View view = inflater.inflate(R.layout.fragment,container,false);
         searchNews();
 
         //recycleview
-        rcCountry = (RecyclerView) view.findViewById(R.id.rcCountry);
+        rcCountry = (RecyclerView) view.findViewById(R.id.recycleview);
         rcCountry.setHasFixedSize(true);
         rcCountry.setLayoutManager(new LinearLayoutManager(getActivity()));
+        tvName = view.findViewById(R.id.tvName);
+        tvName.setText("Country");
 
         return view;
     }
@@ -84,16 +77,18 @@ public class CountryFragment extends Fragment implements LoadDataRSS {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 s = s.toString().toLowerCase();
-
                 final List<News> filteredList = new ArrayList<>();
+                if(s!=null) {
+                    for (int i = 0; i < newsList.size(); i++) {
 
-                for (int i = 0; i < newsList.size(); i++) {
+                        final String text = newsList.get(i).getTitle().toLowerCase();
+                        if (text.contains(s)) {
 
-                    final String text = newsList.get(i).getTitle().toLowerCase();
-                    if (text.contains(s)) {
-
-                        filteredList.add(newsList.get(i));
+                            filteredList.add(newsList.get(i));
+                        }
                     }
+                }else{
+                    Toast.makeText(getContext(),"Please enter query!!!",Toast.LENGTH_SHORT);
                 }
 
                 rcCountry.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -130,59 +125,7 @@ public class CountryFragment extends Fragment implements LoadDataRSS {
             }
         });
     }
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    public void parseRSSForMain(final News news) {
-        Glide.with(this)
-                .load(news.getImage())
-                .apply(new RequestOptions().fitCenter())
-                .into(imageM);
-        tvTitleM.setText(news.getTitle()+"");
-        tvDescM.setText(news.getDescription()+"");
 
-
-        //time
-        Calendar calendar = Calendar.getInstance();
-        int now = Integer.valueOf(calendar.get(Calendar.DAY_OF_YEAR));
-
-        if(getDayOfYear(news.getPuDate())-now == 0) {
-            tvPubDataM.setText("Today - " + formaTimeDate(news.getPuDate(), "HH:mm:ss a"));
-        }
-        if(now-getDayOfYear(news.getPuDate()) == 1) {
-            tvPubDataM.setText("Yesterday - " + formaTimeDate(news.getPuDate(), "HH:mm:ss a"));
-        }
-        if(now-getDayOfYear(news.getPuDate())<=7 && now-getDayOfYear(news.getPuDate()) > 1){
-            tvPubDataM.setText(formaTimeDate(news.getPuDate(), "EEEE")+" - "+formaTimeDate(news.getPuDate(), "HH:mm:ss a"));
-        }
-        if(now-getDayOfYear(news.getPuDate())>7){
-            tvPubDataM.setText(formaTimeDate(news.getPuDate(), "dd/MM/yyyy")+" - "+formaTimeDate(news.getPuDate(), "HH:mm:ss a"));
-        }
-
-        layout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), ViewNewsActivity.class);
-                intent.putExtra("Link",news.getLink());
-                startActivity(intent);
-            }
-        });
-
-        shareCM.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent share = new Intent(android.content.Intent.ACTION_SEND);
-                share.setType("text/plain");
-                share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-
-                // Add data to the intent, the receiving app will decide
-                // what to do with it.
-                share.putExtra(Intent.EXTRA_SUBJECT, "Title Of The Post");
-                share.putExtra(Intent.EXTRA_TEXT, news.getLink());
-
-                startActivity(Intent.createChooser(share, "Share link!"));
-            }
-        });
-    }
 
     @Override
     public void parseRSS(List<News> newsList) {
@@ -192,41 +135,7 @@ public class CountryFragment extends Fragment implements LoadDataRSS {
     }
 
     @Override
-    public void searchSusscess(List<News> newsList) {
-
-    }
-
-    @Override
     public void loadFailed(String str) {
 
-    }
-
-    public static String formaTimeDate(String time,String format){
-        SimpleDateFormat formatter = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
-        java.util.Date date=null;
-        try {
-            date = formatter.parse(time);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        final String value = new java.text.SimpleDateFormat(format).
-                format(date);
-        return value;
-    }
-    public static int getDayOfYear(String time){
-        SimpleDateFormat formatter = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
-        java.util.Date date=null;
-        try {
-            date = formatter.parse(time);
-            System.out.println("Date: " + date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        //time
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        int value = Integer.valueOf(calendar.get(Calendar.DAY_OF_YEAR));
-        return value;
     }
 }

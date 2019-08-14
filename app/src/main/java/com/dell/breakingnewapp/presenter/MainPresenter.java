@@ -7,8 +7,12 @@ import android.util.Log;
 
 import com.dell.breakingnewapp.model.News;
 
+import org.jsoup.Jsoup;
+import org.jsoup.select.Elements;
+import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.io.BufferedReader;
@@ -33,7 +37,7 @@ public class MainPresenter extends AsyncTask<String,Integer,String> {
         return readInfoInURL(strings[0]);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.FROYO)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onPostExecute(String s) {
 
@@ -42,9 +46,9 @@ public class MainPresenter extends AsyncTask<String,Integer,String> {
         NodeList nodeList = document.getElementsByTagName("item");
         NodeList nodeListDesc = document.getElementsByTagName("description");
         String title ="",desc="",link="",pubDate="",image="";
-        for(int i = 1; i<nodeList.getLength(); i++){
+        for(int i = 0; i<nodeList.getLength(); i++){
             String cdada = nodeListDesc.item(i+1).getTextContent();
-            image = getImageLinkFromCDATA(cdada);
+            image = extractImageUrl(cdada);
             desc = getDescFromCDATA(cdada);
             Element element = (Element) nodeList.item(i);
             title = xmldomParser.getValue(element,"title");
@@ -53,16 +57,6 @@ public class MainPresenter extends AsyncTask<String,Integer,String> {
             newsArrayList.add(new News(title,desc,pubDate,link,image));
         }
 
-        //Main
-        String cdada = nodeListDesc.item(1).getTextContent();
-        String imageM = getImageLinkFromCDATA(cdada);
-        String descM = getDescFromCDATA(cdada);
-        Element element = (Element) nodeList.item(0);
-        String titleM = xmldomParser.getValue(element,"title");
-        String linkM = xmldomParser.getValue(element,"link");
-        String pubDateM = xmldomParser.getValue(element,"pubDate");
-        News news = new News(titleM,descM,pubDateM,linkM,imageM);
-        loadDataRSS.parseRSSForMain(news);
         loadDataRSS.parseRSS(newsArrayList);
         super.onPostExecute(s);
     }
@@ -92,14 +86,26 @@ public class MainPresenter extends AsyncTask<String,Integer,String> {
         }
         return content.toString();
     }
-    private String getImageLinkFromCDATA(String link){
-        int begin = link.indexOf("https://i");
-        int end = link.indexOf("></a>")-2;
-        return link.substring(begin, end);
-    }
+
     private String getDescFromCDATA(String link){
         int begin = link.indexOf("</br")+5;
         int end = link.length();
         return link.substring(begin, end);
     }
+    private String extractImageUrl(String description) {
+        org.jsoup.nodes.Document document = Jsoup.parse(description);
+        Elements imgs = document.select("img");
+        for (org.jsoup.nodes.Element img : imgs) {
+            if (img.hasAttr("src")) {
+                if(img.attr("src").startsWith("data:image")){
+                    return img.attr("data-original");
+                }
+                return img.attr("src");
+            }
+        }
+
+        // no image URL
+        return "";
+    }
+
 }

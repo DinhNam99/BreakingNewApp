@@ -1,19 +1,12 @@
 package com.dell.breakingnewapp.view;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -52,7 +45,7 @@ public class LoadingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 super.run();
-                Intent intent = new Intent(LoadingActivity.this, MainActivity.class);
+                Intent intent = new Intent(LoadingActivity.this, ActivityGui.class);
                     try {
                         sleep(3000);
                     } catch (InterruptedException e) {

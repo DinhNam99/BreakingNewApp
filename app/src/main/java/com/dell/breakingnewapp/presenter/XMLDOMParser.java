@@ -1,4 +1,5 @@
 package com.dell.breakingnewapp.presenter;
+
 import android.util.Log;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -12,6 +13,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 public class XMLDOMParser {
+
     public Document getDocument(String xml)
     {
         Document document = null;
@@ -56,3 +58,4 @@ public class XMLDOMParser {
         return "";
     }
 }
+

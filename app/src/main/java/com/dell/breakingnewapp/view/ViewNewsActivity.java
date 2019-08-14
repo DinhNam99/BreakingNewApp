@@ -2,7 +2,7 @@ package com.dell.breakingnewapp.view;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,7 +18,12 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.dell.breakingnewapp.R;
-import com.dell.breakingnewapp.adapter.ViewPaperAdapter;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import java.io.IOException;
+
 
 public class ViewNewsActivity extends AppCompatActivity {
 
@@ -39,6 +44,13 @@ public class ViewNewsActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         //getlink
         intent = getIntent();
@@ -46,15 +58,7 @@ public class ViewNewsActivity extends AppCompatActivity {
 
         init();
 
-        //back,share click
-        back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                Intent intent = new Intent(ViewNewsActivity.this, MainActivity.class);
-                startActivity(intent);
-            }
-        });
 
         share.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,7 +111,6 @@ public class ViewNewsActivity extends AppCompatActivity {
     void init(){
         refresh = findViewById(R.id.refresh);
         webView = findViewById(R.id.web);
-        back = findViewById(R.id.back);
         share = findViewById(R.id.shareV);
         progressBar = findViewById(R.id.progress);
         progressBar.setMax(100);
@@ -119,6 +122,7 @@ public class ViewNewsActivity extends AppCompatActivity {
                 super.onPageStarted(view, url, favicon);
 
             }
+
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -132,6 +136,7 @@ public class ViewNewsActivity extends AppCompatActivity {
                 setJavascript();
                 refresh.setRefreshing(false);
                 progressBar.setVisibility(View.GONE);
+
             }
 
         });
@@ -143,6 +148,9 @@ public class ViewNewsActivity extends AppCompatActivity {
             }
         });
         webView.loadUrl(link);
+
+
+
     }
 
     class MyJavaScriptInterface {
@@ -153,11 +161,14 @@ public class ViewNewsActivity extends AppCompatActivity {
     }
 
     private void setJavascript() {
-        webView.loadUrl(
-                "javascript:( " +
-                        "function () {" +
-                        " var result = document.documentElement.scrollWidth; window.HTMLOUT.scrollWidth(result); " +
-                        "} ) ()"
-        );
+        webView.loadUrl("javascript:(function() { " +
+                "document.body.getElementsByClassName('header')[0].style.display='none'; " +
+                "document.body.getElementsByClassName('section')[0].style.display='none'; " +
+                "document.getElementById('footer').style.display='none'; " +
+                "document.getElementById('breadcrum').style.display='none'; " +
+                "document.getElementById('admbackground').style.display='none'; " +
+                "})()");
     }
+
+
 }

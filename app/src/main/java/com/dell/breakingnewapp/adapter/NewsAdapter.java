@@ -26,14 +26,20 @@ import com.squareup.picasso.Picasso;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsHolder> {
 
     List<News> newsList;
     Context context;
+    public static final int TYPE_0 = 0;
+    public static final int TYPE_1 = 1;
 
     public NewsAdapter(Context context, List<News> newsList){
         this.context = context;
@@ -44,42 +50,47 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsHolder> {
     @NonNull
     @Override
     public NewsHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_view, viewGroup, false);
-        return new NewsHolder(view);
+
+        Log.e("POS",getItemId(i)+"");
+        if(i == TYPE_0) {
+           View view = LayoutInflater.from(context).inflate(R.layout.item_0, viewGroup, false);
+            return new NewsHolder(view);
+        }else{
+            View view = LayoutInflater.from(context).inflate(R.layout.item_view, viewGroup, false);
+            return new NewsHolder(view);
+        }
+
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull NewsHolder newsHolder, final int i) {
         final News news = newsList.get(i);
         newsHolder.title.setText(news.getTitle());
         newsHolder.desc.setText(news.getDescription());
 
-        //time
-        Calendar calendar = Calendar.getInstance();
-        int now = Integer.valueOf(calendar.get(Calendar.DAY_OF_YEAR));
-        if(getDayOfYear(news.getPuDate())-now == 0) {
+        if(TimeToNow(news.getPuDate())==0) {
             newsHolder.timedate.setText("Today - " + formaTimeDate(news.getPuDate(), "HH:mm:ss a"));
         }
-        if(now-getDayOfYear(news.getPuDate()) == 1) {
+        if(TimeToNow(news.getPuDate()) == 1) {
             newsHolder.timedate.setText("Yesterday - " + formaTimeDate(news.getPuDate(), "HH:mm:ss a"));
         }
-        if(now-getDayOfYear(news.getPuDate())<=7 && now-getDayOfYear(news.getPuDate()) > 1){
+        if(TimeToNow(news.getPuDate())<=7 && TimeToNow(news.getPuDate()) > 1){
             newsHolder.timedate.setText(formaTimeDate(news.getPuDate(), "EEEE")+" - "+formaTimeDate(news.getPuDate(), "HH:mm:ss a"));
         }
-        if(now-getDayOfYear(news.getPuDate())>7){
+        if(TimeToNow(news.getPuDate())>7){
             newsHolder.timedate.setText(formaTimeDate(news.getPuDate(), "dd/MM/yyyy")+" - "+formaTimeDate(news.getPuDate(), "HH:mm:ss a"));
         }
-
-        Glide.with(context)
-                .load(news.getImage())
-                .apply(new RequestOptions().fitCenter())
-                .into(newsHolder.imageItem);
+        Picasso.with(context).load(news.getImage()).into(newsHolder.imageItem);
 
         newsHolder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("TIME",formaTimeDate(news.getPuDate(), "EEEE")+"");
+
                 Intent intent = new Intent(context, ViewNewsActivity.class);
                 intent.putExtra("Link",news.getLink());
                 context.startActivity(intent);
@@ -105,40 +116,75 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsHolder> {
 
     public static String formaTimeDate(String time,String format){
         SimpleDateFormat formatter = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
-        java.util.Date date=null;
+        String value = null;
         try {
-            date = formatter.parse(time);
+            Date date = formatter.parse(time);
+            value = new SimpleDateFormat(format).format(date);
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        final String value = new java.text.SimpleDateFormat(format).
-                format(date);
         return value;
     }
-    public static int getDayOfYear(String time){
-        SimpleDateFormat formatter = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
-        java.util.Date date=null;
+
+    public static int TimeToNow(String time){
+        Calendar cal1 = new GregorianCalendar();
+        Calendar cal2 = new GregorianCalendar();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+        java.util.Date date = null;
         try {
-            date = formatter.parse(time);
+            date = sdf.parse(time);
+            cal1.setTime(date);
+
+            cal2.setTime(cal2.getTime());
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        //time
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        int value = Integer.valueOf(calendar.get(Calendar.DAY_OF_YEAR));
-        return value;
+        int result = daysBetween(cal2, cal1);
+        return result;
+    }
+
+    public static int daysBetween(Calendar day1, Calendar day2){
+        Calendar dayOne = (Calendar) day1.clone(),
+                dayTwo = (Calendar) day2.clone();
+
+        if (dayOne.get(Calendar.YEAR) == dayTwo.get(Calendar.YEAR)) {
+            return Math.abs(dayOne.get(Calendar.DAY_OF_YEAR) - dayTwo.get(Calendar.DAY_OF_YEAR));
+        } else {
+            if (dayTwo.get(Calendar.YEAR) > dayOne.get(Calendar.YEAR)) {
+                //swap them
+                Calendar temp = dayOne;
+                dayOne = dayTwo;
+                dayTwo = temp;
+            }
+            int extraDays = 0;
+
+            int dayOneOriginalYearDays = dayOne.get(Calendar.DAY_OF_YEAR);
+
+            while (dayOne.get(Calendar.YEAR) > dayTwo.get(Calendar.YEAR)) {
+                dayOne.add(Calendar.YEAR, -1);
+                // getActualMaximum() important for leap years
+                extraDays += dayOne.getActualMaximum(Calendar.DAY_OF_YEAR);
+            }
+
+            return extraDays - dayTwo.get(Calendar.DAY_OF_YEAR) + dayOneOriginalYearDays ;
+        }
+    }
+
+
+    @Override
+    public int getItemViewType(int position) {
+        if(position == 0){
+            return TYPE_0;
+        }else {
+            return 1;
+        }
     }
 
     @Override
     public int getItemCount() {
         return newsList.size();
-    }
-
-    public void filterList(List<News> newsFilter){
-       this.newsList = newsFilter;
-        notifyDataSetChanged();
     }
 
 
